@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image recognition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+    <script src="https://unpkg.com/ml5@0.4.3/dist/ml5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/webcamjs/1.0.26/webcam.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <center>
+                <h1 class="btn btn-default-heading" style="margin-bottom: 22px; font-size: 36px;"><strong>Ein bilderkennungsgesteuertes Recycling-Trennungsprojekt von Daphne McNamara</strong></h1>
+                <br>
+                <p style="font-size: 24px; margin-top: 20px;">Mit KI und maschinellem Lernen verbessert mein Projekt die Müllsortierung, indem es schnell verschiedene Abfalltypen erkennt und so hilft, Recycling besser und genauer zu machen </p>
+                <br>
+                <p style="font-size: 24px; margin-top: 20px;">6 verschiedene Abfallkategorien, auf die das Modell trainiert ist </p>
+                <div class="flex-container" style="color: red;">
+                    <span style="font-size: 25px;">Karton</span>
+                    <span style="font-size: 25px;">Glas</span>
+                    <span style="font-size: 25px;">Papier</span>
+                    <span style="font-size: 25px;">Metall</span>
+                    <span style="font-size: 25px;">Plastik</span>
+                    <span style="font-size: 25px;">'Sondere'</span>
+                </div>
+                <br><br>
+                <p style="font-size: 36px;">Objekt: <span id="object_name" style="color: red; font-weight: bold;"></span></p>
+                <p style="font-size: 36px;">Genauigkeit: <span id="accuracy_count" style="color: red; font-weight: bold;"></span></p>
+                <br><br>
+                <div id="webcam"></div>
+                <br><br>
+               <div id="result"></div>
+          </center>
+        </div>
+        <div class="col-md-4">
+           </right>
+                <br><br>
+                <br><br>
+                <br><br>
+             </right>
+             <img src="./Machine-Learning-Robo-next-to-black-board_w960_h609.jpg" alt="Description of the image" width="600" height="400" style="margin-bottom: 20px;">
+             </right>
+               <br><br>
+               <label style="font-size: 19px;">Ein Foto Ihres Abfalls mit der Taste 'Foto Aufnehmen' machen oder über 'Hochladen' auswählen und dann 'Identifizieren' drücken.</label>
+               <br><br>
+              <button class="btn btn-primary" style="font-size: 26px; padding: 10px 20px;" onclick="takeSnapshot()">Foto Aufnehmen</button>
+              <br><br>
+              <div style="display: flex; align-items: center;">
+              <label for="file-input" id="file-upload-label" style="font-size: 20px; margin-right: 10px;">Hochladen</label>
+              <input type="file" id="file-input" accept="image/*" onchange="previewFile()" style="font-size: 18px; padding: 2px;">
+              </div>
+              <br><br>   
+             <button class="btn btn-success" style="font-size: 26px; padding: 10px 20px;" onclick="identify()">Identifizieren</button>
+             <br><br>
+             <br><br>
+             <br><br>
+         </div>
+    </div>
+</div>
+<script>
+    let classifier;
+    let imageCapture;
+
+    // Load the model from Teachable Machine
+    ml5.imageClassifier('https://teachablemachine.withgoogle.com/models/-8plkUnZl/model.json')
+        .then(model => {
+            classifier = model;
+            console.log('Model loaded!');
+        });
+
+    Webcam.set({
+        width: 640,
+        height: 480,
+        image_format: 'jpeg',
+        jpeg_quality: 90
+    });
+    Webcam.attach('#webcam');
+
+    function takeSnapshot() {
+        Webcam.snap(function(data_uri) {
+            imageCapture = data_uri;
+            document.getElementById('result').innerHTML = '<img src="' + data_uri + '" style="max-width: 100%;"/>';
+        });
+    }
+
+    function previewFile() {
+        const file = document.getElementById('file-input').files[0];
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            imageCapture = event.target.result;
+            document.getElementById('result').innerHTML = '<img src="' + event.target.result + '" style="max-width: 100%;"/>';
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function identify() {
+        if (classifier && imageCapture) {
+            const img = new Image();
+            img.src = imageCapture;
+            img.onload = () => {
+                classifier.classify(img, (error, results) => {
+                    if (error) {
+                        console.error(error);
+                    } else {
+                        document.getElementById('object_name').innerText = results[0].label;
+                        document.getElementById('accuracy_count').innerText = (results[0].confidence * 100).toFixed(2) + '%';
+                        document.getElementById('result').innerHTML = '<img src="' + imageCapture + '"/>';
+                    }
+                });
+            };
+        }
+    }
+// Assuming you have a variable named accuracy_count that holds the accuracy count value
+// Get the inner text content of the accuracy count span element
+var accuracyCountElement = document.getElementById("accuracy_count");
+var accuracyCount = accuracyCountElement.innerText;
+
+// Append "%" symbol to the accuracy count value
+var accuracyPercentage = accuracyCount + "%";
+
+// Update the HTML element with the accuracy percentage
+accuracyCountElement.innerText = accuracyPercentage;
+</script>
+<script src="main.js"></script>
+</body>
+</html>
